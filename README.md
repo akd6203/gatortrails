@@ -3,6 +3,7 @@
 ### Overview
 
 **GatorTrails** is a web application built using Flask that allows users to predict crocodile encounters based on location and time. The app offers a user-friendly interface where users can click on a map to select a location, specify a month and year, and then receive predictions for the likelihood of crocodile encounters, estimated size of the crocodile, and species information. Additionally, the app integrates with Wikipedia to provide further details about the predicted crocodile species.
+
 ![GatorTrails Homepage](static/snapshot.png)
 
 ### Key Features
@@ -20,20 +21,49 @@ The Northern Territory of Australia is known for its rich wildlife, including a 
 
 ---
 
-## Data Preprocessing
+### Dataset Snapshot
 
-The raw dataset we worked with contained several records of crocodile sightings and captures across various regions. However, the data needed to be transformed and cleaned before it could be used for predictive modeling. Here's an outline of how we processed the data:
+![GatorTrails Homepage](static/Dataset_snapshot.png)
 
-1. **Data Cleaning**: We began by removing any incomplete or duplicate records. Many rows contained missing information, especially in location fields, which were critical for the model's accuracy.
-   
-2. **Feature Engineering**: To prepare the data for model training, we extracted important features such as:
-   - **Latitude and Longitude**: To pinpoint the specific location of encounters.
-   - **Month and Year**: To track time-based trends in crocodile sightings and encounters.
-   - **Species and Size**: These were used to provide richer predictions.
-   
-3. **Aggregation**: The raw data often contained multiple records for the same location and time period. To make the data more useful for predictions, we grouped the data by location (latitude, longitude), month, and year. We then computed summary statistics like the number of encounters and the average size of crocodiles in each area.
+### Data Preprocessing & Engineering
 
-4. **Data Scaling**: Some of the features had different units or ranges, so we standardized the data to ensure that the machine learning models could make accurate predictions without being biased by scale.
+Before building the machine learning models, we needed to clean and transform the raw crocodile survey data to make it suitable for analysis and prediction. Here's a step-by-step breakdown of the data preprocessing workflow:
+
+#### 1. Loading the Dataset
+- The dataset was stored in an Excel file containing details about crocodile sightings, including location, species, size, and the time of the encounter.
+- We loaded this dataset into a Pandas DataFrame for easier manipulation and analysis.
+
+#### 2. Extracting Date, Month, and Year
+- The dataset contained a `UTC_Date` column that recorded the exact date and time of each encounter.
+- To simplify time-based analysis and prediction, we extracted the **Date**, **Month**, and **Year** from this column and created separate columns for each.
+
+#### 3. Rounding Latitude and Longitude
+- Exact latitude and longitude coordinates can be overly specific and may introduce unnecessary noise into the analysis.
+- We rounded these values to three decimal places to group nearby encounters more effectively, which improved the predictions.
+
+#### 4. Grouping Data by Location and Time
+- The data was grouped by **Latitude**, **Longitude**, **Date**, **Month**, and **Year** to aggregate information at each unique location and time combination.
+- For each group, we extracted the first recorded **species** and calculated the **average size** of the crocodiles (in feet).
+
+#### 5. Counting the Number of Encounters
+- A column was created to count the number of encounters at each location and time.
+- This value was crucial for predicting the likelihood of future crocodile encounters in that area.
+
+#### 6. Saving the Preprocessed Data
+- Once the data was cleaned, grouped, and enriched with insights (such as the number of encounters, species, and average size), we saved the preprocessed data to a CSV file.
+- This data was then used for training machine learning models and performing further analysis.
+
+#### 7. Final Inspection
+- After preprocessing, we reviewed the data to ensure that the transformations were applied correctly and that the data was in the appropriate format for analysis.
+
+### Summary of Data Preprocessing
+
+- **Raw Data**: The original dataset contained detailed records of crocodile sightings, including timestamps, location, species, and size.
+- **Date, Month, and Year Extraction**: We extracted the date, month, and year from the timestamp to make time-based analysis easier.
+- **Latitude and Longitude Rounding**: The latitude and longitude coordinates were rounded to three decimal places to group nearby sightings effectively.
+- **Data Grouping**: The data was grouped by location (latitude, longitude) and time (date, month, year) to aggregate information about species and size.
+- **Encounter Count**: A column was created to count the number of encounters at each location and time.
+- **Preprocessed Data**: The cleaned and transformed data was saved to a CSV file, ready for further analysis and model training.
 
 ---
 

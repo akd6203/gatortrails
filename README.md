@@ -1,4 +1,4 @@
-![GatorTrails Logo](static/logo.jpeg) # GatorTrails - Crocodile Activity Predictor
+# GatorTrails - Crocodile Activity Predictor
 
 ### Overview
 

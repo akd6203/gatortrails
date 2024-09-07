@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gator Trails</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="shortcut icon" href="{{ url_for('static', filename='logo.jpeg') }}">
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <style>
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body style="background-color:#5958b2;">
+   <div class="container mt-3 mx-auto" style="width: 30%;">
+    <div class="row">
+        <div class="col-md-3 text-right p-0 m-0">
+            <img src="{{ url_for('static', filename='logo.jpeg') }}" alt="NO IMAGE" height="100">
+        </div>
+        <div class="col-md-9 text-left m-0 p-0 pl-3">
+            <h1 class="text-left text-white">  Gator Trails
+                <br/><span style="font-size: 25px;line-height:10px;">Stay Safe from the Snap</span></h1>
+        </div>
+    </div>
+   </div>
+    
+    <div class="container mt-5 bg-white pb-1 mt-0 mb-1"> 
+        <!-- Map where user can select location -->
+        <div id="map" class="mt-4"></div>
+
+        <!-- Prediction form -->
+        <form id="prediction-form" class="mt-4">
+            <input type="hidden" id="latitude" name="latitude">
+            <input type="hidden" id="longitude" name="longitude">
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="month">Month</label>
+                    <input type="text" class="form-control" id="month" name="month" placeholder="Enter Month">
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="year">Year</label>
+                    <input type="text" class="form-control" id="year" name="year" placeholder="Enter Year">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Check Crocodile Activity</button>
+        </form>
+
+        <!-- Display prediction result -->
+        <div id="prediction-result" class="mt-4"></div>
+    </div>
+
+    <script>
+        let map = L.map('map').setView([-13.4634, 130.8456], 7);  // Default center on Northern Territory
+
+        // Load the map with OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        let marker;  // To store the selected location marker
+
+        // Handle map click to set latitude and longitude
+        map.on('click', function(e) {
+            var lat = e.latlng.lat;
+            var lon = e.latlng.lng;
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lon;
+
+            // If a marker exists, remove it
+            if (marker) {
+                map.removeLayer(marker);
+            }
+
+            // Add a marker at the clicked location and show a popup
+            marker = L.marker([lat, lon]).addTo(map)
+                .bindPopup("Location selected: (" + lat + ", " + lon + ")")
+                .openPopup();
+        });
+
+        // Handle form submission for prediction
+document.getElementById('prediction-form').onsubmit = function(e) {
+    e.preventDefault();  // Prevent the form from submitting and reloading the page
+
+    // Get the values from the form fields
+    var lat = document.getElementById('latitude').value;
+    var lon = document.getElementById('longitude').value;
+    var month = document.getElementById('month').value;
+    var year = document.getElementById('year').value;
+
+    // Use fetch to send the form data to the backend without reloading the page
+    fetch('/predict', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+            'latitude': lat,
+            'longitude': lon,
+            'month': month,
+            'year': year
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Update the page with the results without refreshing
+        let speciesDetails = data.species_details;
+        console.log(speciesDetails);
+        document.getElementById('prediction-result').innerHTML = `
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">Predicted Crocodile Activity</h5>
+                    <p style='text-align:center'><img src='${speciesDetails.originalimage.source}' height='300' width='50%'></p>
+                    <p><strong>Encounters:</strong> ${data.predicted_encounters}</p>
+                    <p><strong>Species:</strong> ${data.predicted_species}</p>
+                    <p><strong>Size:</strong> ${data.predicted_size} feet</p>
+                    <h5 class="mt-3">Species Information</h5>
+                    <p>${speciesDetails.extract}</p>
+                    <a href="${speciesDetails.content_urls.desktop.page}" target="_blank" class="btn btn-primary">Learn More</a>
+                </div>
+            </div>
+        `;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+};
+
+    </script>
+</body>
+</html>
